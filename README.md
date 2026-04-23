@@ -1,6 +1,3 @@
-Here is the complete `README.md` code for your project. You can copy this directly into your file.
-
-```markdown
 # 📄 DocuFlow: VTU Internship Report Automator
 
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
@@ -64,5 +61,4 @@ This project is part of a larger ecosystem of automation tools designed for engi
 
 ## 👨‍💻 Author
 
-Built with precision by **[Shreyas K S](https://github.com/Shreyas445)** at SDIT, Mangalore.
-```
+Built with precision by **[Shreyas K S](https://github.com/Shreyas445)**.
