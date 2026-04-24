@@ -410,7 +410,8 @@ ${logDataStr}`;
         .hero-subtitle { font-size: 1.25rem; color: #475569; max-width: 650px; margin: 0 auto 2.5rem auto; line-height: 1.6; }
         
         .btn-wrapper { position: relative; display: inline-block; }
-        .btn-wrapper::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 99px; box-shadow: 0 0 30px rgba(79, 70, 229, 0.4); z-index: -1; animation: float 3s infinite; }
+        .btn-wrapper::after { content: none; }
+        // .btn-wrapper::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 99px; box-shadow: 0 0 30px rgba(79, 70, 229, 0.4); z-index: -1; animation: float 3s infinite; }
         .btn-hero { background: #0F172A; color: white; font-size: 1.15rem; font-weight: 600; padding: 1.2rem 3rem; border-radius: 99px; border: none; cursor: pointer; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.75rem; z-index: 1; }
         .btn-hero:hover { background: #1E293B; transform: translateY(-2px); }
 
@@ -447,7 +448,7 @@ ${logDataStr}`;
         .stepper-item.completed ~ .stepper-item::before { background: #E2E8F0; }
 
         /* --- FORM ELEMENTS --- */
-        .modern-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 3rem; margin-bottom: 2rem; }
+        .modern-card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); padding: 1.8rem; margin-bottom: 2rem; }
         
         .section-title { font-size: 1.5rem; font-weight: 700; color: #0F172A; margin: 0 0 2rem 0; display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid #F1F5F9; padding-bottom: 1rem; }
         .section-title i { color: #4F46E5; background: #EEF2FF; padding: 0.5rem; border-radius: 8px; }
