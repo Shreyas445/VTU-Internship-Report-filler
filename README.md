@@ -8,6 +8,12 @@ DocuFlow is a modern, end-to-end React application designed to completely automa
 
 Instead of manually formatting 12 weeks of daily logs in Microsoft Word, students can input their basic details, generate a smart AI prompt to extrapolate their notes, and instantly download a 100% college-compliant `.docx` file.
 
+<br>
+
+### Just click here ----> https://vtu-report-fill.netlify.app/
+> the website is live, just rise a issue if u encounter any issue or needs any update
+<br>
+
 ## ✨ Features
 
 - **3-Step Smart Wizard:** A sleek, guided UI/UX for collecting Cover Page details, Schedule information, and JSON data.
