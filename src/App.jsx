@@ -6,27 +6,85 @@ import { saveAs } from 'file-saver';
 const App = () => {
   // --- VIEW & WIZARD STATE ---
   const [currentView, setCurrentView] = useState('landing');
-  const [currentStep, setCurrentStep] = useState(1);
-
-  // --- DATA STATE ---
-  const [frontPage, setFrontPage] = useState({
-    student_name: '', usn: '', branch: '', internal_guide: '', external_guide: '',
-    external_guide_details: '', internship_nature: 'Online', internship_type: 'Paid',
-    amount_paid: '', organization_address: '', internship_title: '', abstract: '',
-    introduction: '', organization_profile: ''
+  
+  // LAZY INITIALIZATION: Check local storage before setting default state
+  const [currentStep, setCurrentStep] = useState(() => {
+    const saved = localStorage.getItem('docuflow_step');
+    return saved ? JSON.parse(saved) : 1;
   });
 
-  const [schedule, setSchedule] = useState({
-    company: '', domain: '', startDate: '', endDate: '', brief: '',
-    workingDays: [1, 2, 3, 4, 5, 6]
+  // --- DATA STATE (WITH LOCAL STORAGE) ---
+  const [frontPage, setFrontPage] = useState(() => {
+    const saved = localStorage.getItem('docuflow_frontPage');
+    return saved ? JSON.parse(saved) : {
+      student_name: '', usn: '', branch: '', internal_guide: '', external_guide: '',
+      external_guide_details: '', internship_nature: 'Online', internship_type: 'Paid',
+      amount_paid: '', organization_address: '', internship_title: '', abstract: '',
+      introduction: '', organization_profile: ''
+    };
   });
 
-  const [mode, setMode] = useState('day');
+  const [schedule, setSchedule] = useState(() => {
+    const saved = localStorage.getItem('docuflow_schedule');
+    return saved ? JSON.parse(saved) : {
+      company: '', domain: '', startDate: '', endDate: '', brief: '',
+      hours_per_day: '8', // NEW FIELD: Hours worked per day
+      workingDays: [1, 2, 3, 4, 5, 6]
+    };
+  });
+
+  const [mode, setMode] = useState(() => {
+    const saved = localStorage.getItem('docuflow_mode');
+    return saved ? JSON.parse(saved) : 'day';
+  });
+
+  const [entryValues, setEntryValues] = useState(() => {
+    const saved = localStorage.getItem('docuflow_entryValues');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [dynamicFields, setDynamicFields] = useState([]);
-  const [entryValues, setEntryValues] = useState({});
   const [promptObj, setPromptObj] = useState({ text: '', show: false });
   const [pastedJson, setPastedJson] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  // --- LOCAL STORAGE SYNC (Saves automatically when state changes) ---
+  useEffect(() => { localStorage.setItem('docuflow_step', JSON.stringify(currentStep)); }, [currentStep]);
+  useEffect(() => { localStorage.setItem('docuflow_frontPage', JSON.stringify(frontPage)); }, [frontPage]);
+  useEffect(() => { localStorage.setItem('docuflow_schedule', JSON.stringify(schedule)); }, [schedule]);
+  useEffect(() => { localStorage.setItem('docuflow_mode', JSON.stringify(mode)); }, [mode]);
+  useEffect(() => { localStorage.setItem('docuflow_entryValues', JSON.stringify(entryValues)); }, [entryValues]);
+
+  // --- CLEAR DATA FUNCTION ---
+  const clearAllData = () => {
+    if (window.confirm("🚨 Are you sure you want to clear all your saved data? This cannot be undone.")) {
+      localStorage.removeItem('docuflow_step');
+      localStorage.removeItem('docuflow_frontPage');
+      localStorage.removeItem('docuflow_schedule');
+      localStorage.removeItem('docuflow_mode');
+      localStorage.removeItem('docuflow_entryValues');
+      
+      // Reset State
+      setFrontPage({
+        student_name: '', usn: '', branch: '', internal_guide: '', external_guide: '',
+        external_guide_details: '', internship_nature: 'Online', internship_type: 'Paid',
+        amount_paid: '', organization_address: '', internship_title: '', abstract: '',
+        introduction: '', organization_profile: ''
+      });
+      setSchedule({
+        company: '', domain: '', startDate: '', endDate: '', brief: '',
+        hours_per_day: '8',
+        workingDays: [1, 2, 3, 4, 5, 6]
+      });
+      setMode('day');
+      setEntryValues({});
+      setCurrentStep(1);
+      setPromptObj({ text: '', show: false });
+      setPastedJson('');
+      
+      alert("All saved data has been cleared!");
+    }
+  };
 
   // --- HANDLERS ---
   const handleFrontPageChange = (e) => setFrontPage({ ...frontPage, [e.target.name]: e.target.value });
@@ -34,7 +92,6 @@ const App = () => {
 
   const setInternshipNature = (val) => setFrontPage({ ...frontPage, internship_nature: val });
   const setInternshipType = (val) => {
-    // If they switch to free, clear the amount paid automatically
     const newAmount = val === 'Free' ? '' : frontPage.amount_paid;
     setFrontPage({ ...frontPage, internship_type: val, amount_paid: newAmount });
   };
@@ -142,7 +199,7 @@ const App = () => {
     let logDataStr = "";
     dynamicFields.forEach(f => {
       const val = entryValues[f.id] || "";
-      logDataStr += `* ${f.label}:\n  ${val || "[User left this blank - AI MUST infer and distribute realistic tasks]"}\n\n`;
+      logDataStr += `• ${f.label}:\n  ${val || "[User left this blank - AI MUST infer and distribute realistic tasks]"}\n\n`;
     });
 
     const promptText = `You are an AI system generating a strict internship diary JSON.
@@ -157,12 +214,13 @@ RULES:
     "day_number": "1",
     "date": "DD-MM-YYYY",
     "topic": "...",
-    "hours": "8",
+    "hours": "${schedule.hours_per_day || '8'}",
     "summary": "...",
-    "outcomes": "* Point 1\\n* Point 2",
+    "outcomes": "• Point 1\\n• Point 2",
     "skills": "..."
   }
 ]
+* Note: "outcomes" MUST be a single string using \\n and the bullet point symbol (•) for each item. DO NOT use asterisks (*).
 
 --- VALID WORKING DATES ---
 ${exactDatesListStr}
@@ -322,7 +380,7 @@ ${logDataStr}`;
       </div>
       
       <div className="footer-bottom">
-        <p>&copy; 2026 Dev. Built with precision for VTU students.</p>
+        <p>&copy; 2026 Shreyas K S. Built with precision for VTU students.</p>
       </div>
     </footer>
   );
@@ -368,11 +426,15 @@ ${logDataStr}`;
         /* --- APP CONTAINER & WIZARD --- */
         .app-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
         .app-container { max-width: 900px; width: 100%; margin: 0 auto; padding: 3rem 1.5rem; flex: 1; }
-        .app-header { text-align: center; margin-bottom: 3rem; }
-        .app-title { font-size: 2.5rem; font-weight: 800; color: #0F172A; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; letter-spacing: -0.03em; transition: color 0.2s; }
+        
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; position: relative; }
+        .app-title { font-size: 2.5rem; font-weight: 800; color: #0F172A; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; letter-spacing: -0.03em; transition: color 0.2s; margin: 0; }
         .app-title:hover { color: #4F46E5; }
         .app-title i { color: #4F46E5; }
         
+        .btn-clear { background: #FEF2F2; color: #EF4444; border: 1px solid #FECACA; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-clear:hover { background: #FEE2E2; border-color: #FCA5A5; }
+
         /* Stepper */
         .stepper-wrapper { display: flex; justify-content: space-between; margin-bottom: 3.5rem; position: relative; padding: 0 10%; }
         .stepper-wrapper::before { content: ""; position: absolute; top: 20px; left: 10%; width: 80%; height: 2px; background: #E2E8F0; z-index: 1; }
@@ -444,6 +506,7 @@ ${logDataStr}`;
         .footer-bottom { max-width: 1000px; margin: 0 auto; padding-top: 2rem; border-top: 1px solid #1E293B; text-align: center; font-size: 0.875rem; }
         
         @media (max-width: 768px) {
+          .app-header { flex-direction: column; gap: 1.5rem; }
           .footer-container { grid-template-columns: 1fr; gap: 2rem; }
           .grid-2 { grid-template-columns: 1fr; }
           .features-bento { grid-template-columns: 1fr; }
@@ -459,6 +522,11 @@ ${logDataStr}`;
               <h1 className="app-title" onClick={() => setCurrentView('landing')} title="Back to Home">
                 <i className="fas fa-layer-group"></i> DocuFlow
               </h1>
+              
+              {/* CLEAR DATA BUTTON */}
+              <button className="btn-clear" onClick={clearAllData} title="Clear saved data">
+                <i className="fas fa-trash-alt"></i> Clear Data
+              </button>
             </header>
 
             {renderWizardHeader()}
@@ -583,14 +651,22 @@ ${logDataStr}`;
                   </div>
                 </div>
 
-                <div className="input-group" style={{ marginBottom: '1.5rem' }}>
-                  <label className="input-label"><i className="fas fa-sun"></i> Working Days per Week *</label>
-                  <div className="days-container">
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
-                      <label key={i} className="day-checkbox">
-                        <input type="checkbox" checked={schedule.workingDays.includes(i)} onChange={() => handleCheckboxChange(i)} /> {day}
-                      </label>
-                    ))}
+                <div className="grid-2" style={{ marginBottom: '1.5rem' }}>
+                  <div className="input-group">
+                    <label className="input-label"><i className="fas fa-sun"></i> Working Days per Week *</label>
+                    <div className="days-container" style={{ height: '100%' }}>
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, i) => (
+                        <label key={i} className="day-checkbox">
+                          <input type="checkbox" checked={schedule.workingDays.includes(i)} onChange={() => handleCheckboxChange(i)} /> {day}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* --- NEW HOURS INPUT --- */}
+                  <div className="input-group">
+                    <label className="input-label"><i className="fas fa-clock"></i> Hours Worked per Day *</label>
+                    <input name="hours_per_day" type="number" min="1" max="24" className="form-control" placeholder="e.g. 8" value={schedule.hours_per_day} onChange={handleScheduleChange} style={{ height: '100%' }} />
                   </div>
                 </div>
 
